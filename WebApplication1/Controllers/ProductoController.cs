@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApplication1.DTOs;
 using WebApplication1.Modelos;
 
 namespace WebApplication1.Controllers;
@@ -9,38 +10,56 @@ namespace WebApplication1.Controllers;
 public class ProductoController : ControllerBase
 {
     private readonly DBContext _context;
-    public ProductoController(DBContext context)
+    private readonly ILogger<ProductoController> _logger;
+    public ProductoController(DBContext context, ILogger<ProductoController> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     [HttpGet]
     [Route("consultar")]
-    public async Task<ActionResult<IEnumerable<Factura>>> ConsultarFacturas()
+    public async Task<ActionResult<IEnumerable<Producto>>> ConsultarProductos()
     {
-        return await _context.Facturas.Include(f => f.Cliente).Include(f => f.Vendedor).Include(f => f.DetalleFactura).Include(f => f.FormaPago).ToListAsync();
+        return await _context.Productos.ToListAsync();
     }
 
     [HttpPost]
     [Route("crear")]
-    public async Task<ActionResult<Factura>> CrearFacturas(Factura factura)
+    public async Task<ActionResult<Producto>> CrearFacturas(ProductoCreate productoCreate)
     {
-        _context.Facturas.Add(factura);
+        Producto producto = new Producto
+        {
+            Nombre = productoCreate.Nombre,
+            Precio = productoCreate.Precio,
+            Estado = "Activo",
+            FechaCreacion = System.DateTime.Now
+        };
+        _context.Productos.Add(producto);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction("Factura creada No.", new { id = factura.Id }, factura);
+        return producto;
     } 
 
     [HttpPut]
     [Route("modificar")]
-    public async Task<ActionResult<Factura>> ModificarFacturas(int id, Factura factura)
+    public async Task<ActionResult<Producto>> ModificarFacturas(int Id, ProductoCreate productoCreate)
     {
-        if (id != factura.Id)
+        Producto producto = new Producto
+        {
+            Id = Id,
+            Nombre = productoCreate.Nombre,
+            Precio = productoCreate.Precio,
+            Estado = "Activo",
+            FechaCreacion = System.DateTime.Now
+        };
+
+        if (Id == 0)
         {
             return BadRequest();
         }
 
-        _context.Entry(factura).State = EntityState.Modified;
+        _context.Entry(producto).State = EntityState.Modified;
 
         try
         {
@@ -48,7 +67,7 @@ public class ProductoController : ControllerBase
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (!ProductoExists(id))
+            if (!ProductoExists(Id))
             {
                 return NotFound();
             }
@@ -56,37 +75,30 @@ public class ProductoController : ControllerBase
             {
                 throw;
             }
-        } 
+        }
 
-        return CreatedAtAction("Factura No.", new { id = factura.Id }, factura);
+        return producto;
     }
 
     [HttpDelete]
     [Route("eliminar")]
-    public async Task<ActionResult<Factura>> EliminarFacturas(int id)
+    public async Task<ActionResult<Producto>> EliminarFacturas(int Id)
     {
-        var factura = await _context.Facturas.FindAsync(id);
-        if (factura == null)
+        var Producto = await _context.Productos.FindAsync(Id);
+        if (Producto == null)
         {
             return NotFound();
         }
 
-        _context.Facturas.Remove(factura);
+        _context.Productos.Remove(Producto);
         await _context.SaveChangesAsync();
 
         return NoContent();
     }
 
-    private readonly ILogger<ClienteController> _logger;
-
-    public ProductoController(ILogger<ClienteController> logger)
+    private bool ProductoExists(int Id)
     {
-        _logger = logger;
-    }
-
-    private bool ProductoExists(int id)
-    {
-        return _context.Productos.Any(e => e.Id == id);
+        return _context.Productos.Any(e => e.Id == Id);
     }
 
 
