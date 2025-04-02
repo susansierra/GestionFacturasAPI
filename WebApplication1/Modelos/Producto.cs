@@ -10,5 +10,7 @@
 
         public string Estado { get; set; }
 
+        public DateTime FechaCreacion { get; set; }
+
     }
 }

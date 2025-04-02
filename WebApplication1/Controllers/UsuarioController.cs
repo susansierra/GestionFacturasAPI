@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApplication1.DTOs.Usuario;
 using WebApplication1.Modelos;
 
 namespace WebApplication1.Controllers;
@@ -9,9 +10,11 @@ namespace WebApplication1.Controllers;
 public class UsuarioController : ControllerBase
 {
     private readonly DBContext _context;
-    public UsuarioController(DBContext context)
+    private readonly ILogger<UsuarioController> _logger;
+    public UsuarioController(DBContext context, ILogger<UsuarioController> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -23,24 +26,46 @@ public class UsuarioController : ControllerBase
 
     [HttpPost]
     [Route("crear")]
-    public async Task<ActionResult<Usuario>> CrearUsuarios(Usuario Usuario)
+    public async Task<ActionResult<Usuario>> CrearUsuarios(UsuarioCreate usuarioCreate)
     {
-        _context.Usuarios.Add(Usuario);
+        Usuario usuario = new Usuario
+        {
+            Nombre = usuarioCreate.Nombre,
+            usuario = usuarioCreate.usuario,
+            Contrasena = usuarioCreate.Contrasena,
+            Correo = usuarioCreate.Correo,
+            Estado = "Activo",
+            FechaCreacion = System.DateTime.Now
+        };
+
+
+        _context.Usuarios.Add(usuario);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction("Usuario creada No.", new { id = Usuario.Id }, Usuario);
-    } 
+        return usuario; //CreatedAtAction("Usuario creada No.", new { id = usuario.Id }, usuario);
+    }
 
     [HttpPut]
     [Route("modificar")]
-    public async Task<ActionResult<Usuario>> ModificarUsuarios(int id, Usuario Usuario)
+    public async Task<ActionResult<Usuario>> ModificarUsuarios(int Id, UsuarioCreate usuarioCreate)
     {
-        if (id != Usuario.Id)
+        Usuario usuario = new Usuario
+        {
+            Id = Id, 
+            Nombre = usuarioCreate.Nombre,
+            usuario = usuarioCreate.usuario,
+            Contrasena = usuarioCreate.Contrasena,
+            Correo = usuarioCreate.Correo,
+            Estado = "Activo",
+            FechaCreacion = System.DateTime.Now
+        };
+
+        if (usuario.Nombre == null)
         {
             return BadRequest();
         }
 
-        _context.Entry(Usuario).State = EntityState.Modified;
+        _context.Entry(usuario).State = EntityState.Modified;
 
         try
         {
@@ -48,7 +73,7 @@ public class UsuarioController : ControllerBase
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (!UsuarioExists(id))
+            if (!UsuarioExists(usuario.Id))
             {
                 return NotFound();
             }
@@ -56,9 +81,8 @@ public class UsuarioController : ControllerBase
             {
                 throw;
             }
-        } 
-
-        return CreatedAtAction("Usuario No.", new { id = Usuario.Id }, Usuario);
+        }
+        return usuario;
     }
 
     [HttpDelete]
@@ -77,17 +101,10 @@ public class UsuarioController : ControllerBase
         return NoContent();
     }
 
-    private readonly ILogger<UsuarioController> _logger;
-
-    public UsuarioController(ILogger<UsuarioController> logger)
-    {
-        _logger = logger;
-    }
-
     private bool UsuarioExists(int id)
     {
         return _context.Usuarios.Any(e => e.Id == id);
-    }
+    } 
     
 
 }

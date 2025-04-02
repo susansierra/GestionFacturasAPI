@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApplication1.DTOs;
 using WebApplication1.Modelos;
 
 namespace WebApplication1.Controllers;
@@ -21,29 +22,49 @@ public class ClienteController : ControllerBase
     [Route("consultar")]
     public async Task<ActionResult<IEnumerable<Cliente>>> ConsultarClientes()
     {
-        return await _context.Clientes.Include(f => f.Usuario).ToListAsync();
+        return await _context.Clientes.ToListAsync();
     }
 
     [HttpPost]
     [Route("crear")]
-    public async Task<ActionResult<Cliente>> CrearClientes(Cliente Cliente)
+    public async Task<ActionResult<Cliente>> CrearClientes(ClienteCreate clienteCreate)
     {
-        _context.Clientes.Add(Cliente);
+        Cliente cliente = new Cliente
+        {
+            Nombre = clienteCreate.Nombre,
+            Telefono = clienteCreate.Telefono,
+            Correo = clienteCreate.Correo,
+            Direccion = clienteCreate.Direccion,
+            Estado = "Activo",
+            FechaCreacion = System.DateTime.Now
+        };
+
+        _context.Clientes.Add(cliente);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction("Cliente creada No.", new { id = Cliente.Id }, Cliente);
-    } 
+        return cliente;
+    }
 
     [HttpPut]
     [Route("modificar")]
-    public async Task<ActionResult<Cliente>> ModificarClientes(int id, Cliente Cliente)
+    public async Task<ActionResult<Cliente>> ModificarClientes(int Id, ClienteCreate clienteCreate)
     {
-        if (id != Cliente.Id)
+        Cliente cliente = new Cliente
+        {
+            Id = Id,
+            Nombre = clienteCreate.Nombre,
+            Telefono = clienteCreate.Telefono,
+            Correo = clienteCreate.Correo,
+            Direccion = clienteCreate.Direccion,
+            Estado = "Activo",
+            FechaCreacion = System.DateTime.Now
+        };
+        if (Id == 0)
         {
             return BadRequest();
         }
 
-        _context.Entry(Cliente).State = EntityState.Modified;
+        _context.Entry(cliente).State = EntityState.Modified;
 
         try
         {
@@ -51,7 +72,7 @@ public class ClienteController : ControllerBase
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (!ClienteExists(id))
+            if (!ClienteExists(Id))
             {
                 return NotFound();
             }
@@ -59,9 +80,9 @@ public class ClienteController : ControllerBase
             {
                 throw;
             }
-        } 
+        }
 
-        return CreatedAtAction("Cliente No.", new { id = Cliente.Id }, Cliente);
+        return cliente;
     }
 
     [HttpDelete]

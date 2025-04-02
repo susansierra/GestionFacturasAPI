@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata;
 
 namespace WebApplication1.Modelos
 {
@@ -26,6 +27,23 @@ namespace WebApplication1.Modelos
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+           
+            modelBuilder.Entity<Usuario>()
+                .Property(b => b.FechaCreacion)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Cliente>()
+                .Property(b => b.FechaCreacion)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Producto>()
+                .Property(b => b.FechaCreacion)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Factura>()
+                .Property(b => b.FechaCreacion)
+                .ValueGeneratedOnAdd();
+
             modelBuilder.Entity<Factura>()
                 .HasOne(f => f.Cliente)
                 .WithMany()

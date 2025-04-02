@@ -7,12 +7,9 @@
         public string usuario { get; set; }
         public string Contrasena { get; set; }
         public string Correo { get; set; }
-        //Vendedor o cliente 
-        public Tipo Tipo { get; set; }
-    }
-    public enum Tipo
-    {
-        Vendedor,
-        Cliente
-    }
+
+        public string Estado { get; set; }
+        public DateTime FechaCreacion { get; set; }
+
+    } 
 }
