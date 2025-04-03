@@ -21,8 +21,8 @@ public class FacturaController : ControllerBase
     [Route("consultar")]
     public async Task<ActionResult<IEnumerable<Factura>>> ConsultarFacturas()
     {
-        //return await _context.Facturas.Include(f => f.Cliente).Include(f => f.Vendedor).Include(f => f.DetalleFactura).ToListAsync();
-        return await _context.Facturas.ToListAsync();
+        return await _context.Facturas.Include(f => f.Cliente).Include(f => f.Vendedor).Include(f => f.DetalleFactura).ThenInclude(f => f.Producto).ToListAsync();
+        //return await _context.Facturas.ToListAsync();
     }
 
     [HttpPost]
@@ -47,7 +47,7 @@ public class FacturaController : ControllerBase
             Subtotal = facturaCreate.Subtotal,
             Iva = facturaCreate.Iva,
             Total = facturaCreate.Total,
-            Estado = "Activo",
+            Estado = "Pagado",
             FechaCreacion = System.DateTime.Now
         };
         foreach (DetalleFacturaCreate detalle in facturaCreate.DetalleFacturaCreate)
@@ -84,6 +84,7 @@ public class FacturaController : ControllerBase
         {
             return BadRequest();
         }
+        var factura = _context.Facturas.FirstOrDefault(e => e.Id == Id);
         var cliente = _context.Clientes.FirstOrDefault(e => e.Id == facturaCreate.IdCliente);
         var vendedor = _context.Usuarios.FirstOrDefault(e => e.Id == facturaCreate.IdVendedor);
         if (cliente == null || vendedor == null)
@@ -92,20 +93,18 @@ public class FacturaController : ControllerBase
         }
         ;
         List<DetalleFactura> listaDetalleFactura = new List<DetalleFactura>();
-        Factura factura = new Factura
-        {
-            IdCliente = facturaCreate.IdCliente,
-            Cliente = cliente,
-            IdVendedor = facturaCreate.IdVendedor,
-            Vendedor = vendedor,
-            FormaPago = facturaCreate.FormaPago,
-            DetalleFactura = listaDetalleFactura,
-            Subtotal = facturaCreate.Subtotal,
-            Iva = facturaCreate.Iva,
-            Total = facturaCreate.Total,
-            Estado = "Activo",
-            FechaCreacion = System.DateTime.Now
-        };
+        factura.IdCliente = facturaCreate.IdCliente;
+        factura.Cliente = cliente;
+        factura.IdVendedor = facturaCreate.IdVendedor;
+        factura.Vendedor = vendedor;
+        factura.FormaPago = facturaCreate.FormaPago;
+        factura.DetalleFactura = listaDetalleFactura;
+        factura.Subtotal = facturaCreate.Subtotal;
+        factura.Iva = facturaCreate.Iva;
+        factura.Total = facturaCreate.Total;
+        factura.Estado = "Pagado";
+        factura.FechaCreacion = System.DateTime.Now;
+
         foreach (DetalleFacturaCreate detalle in facturaCreate.DetalleFacturaCreate)
         {
             var producto = _context.Productos.FirstOrDefault(e => e.Id == detalle.IdProducto);
@@ -116,7 +115,7 @@ public class FacturaController : ControllerBase
             ;
             DetalleFactura detalleFactura = new DetalleFactura
             {
-                IdFactura = factura.Id,
+                IdFactura = Id,
                 Factura = factura,
                 IdProducto = detalle.IdProducto,
                 Producto = producto,
