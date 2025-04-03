@@ -87,9 +87,9 @@ public class UsuarioController : ControllerBase
 
     [HttpDelete]
     [Route("eliminar")]
-    public async Task<ActionResult<Usuario>> EliminarUsuarios(int id)
+    public async Task<ActionResult<Usuario>> EliminarUsuarios(int Id)
     {
-        var Usuario = await _context.Usuarios.FindAsync(id);
+        var Usuario = await _context.Usuarios.FindAsync(Id);
         if (Usuario == null)
         {
             return NotFound();
@@ -101,9 +101,9 @@ public class UsuarioController : ControllerBase
         return NoContent();
     }
 
-    private bool UsuarioExists(int id)
+    private bool UsuarioExists(int Id)
     {
-        return _context.Usuarios.Any(e => e.Id == id);
+        return _context.Usuarios.Any(e => e.Id == Id);
     } 
     
 

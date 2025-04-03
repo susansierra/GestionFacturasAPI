@@ -87,9 +87,9 @@ public class ClienteController : ControllerBase
 
     [HttpDelete]
     [Route("eliminar")]
-    public async Task<ActionResult<Cliente>> EliminarClientes(int id)
+    public async Task<ActionResult<Cliente>> EliminarClientes(int Id)
     {
-        var Cliente = await _context.Clientes.FindAsync(id);
+        var Cliente = await _context.Clientes.FindAsync(Id);
         if (Cliente == null)
         {
             return NotFound();
@@ -103,9 +103,9 @@ public class ClienteController : ControllerBase
 
     
 
-    private bool ClienteExists(int id)
+    private bool ClienteExists(int Id)
     {
-        return _context.Clientes.Any(e => e.Id == id);
+        return _context.Clientes.Any(e => e.Id == Id);
     }    
 
 }
